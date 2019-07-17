@@ -1,8 +1,9 @@
 import os
 import json
-from flask import Flask, render_template
+from flask import Flask, render_template, request, flash
 
 app = Flask(__name__)
+app.secret_key = "my_test_key"
 
 @app.route("/")
 def index():
@@ -15,14 +16,27 @@ def about():
         data = json.load(json_data)
     return render_template("about.html", page_title="About", company = data)
     
-@app.route("/contact")
+@app.route("/contact", methods=["GET", "POST"])
 def contact():
+    if request.method == "POST":
+        flash("Thanks {}, the dwarf will be in contact".format(request.form["name"]))
     return render_template("contact.html", page_title="Contact")
     
 @app.route("/careers")
 def careers():
     return render_template("careers.html", page_title="Careers")
     
+@app.route("/about/<dwarf_name>")
+def about_member(dwarf_name):
+    dwarf = {}
+    with open("data/company.json","r") as json_data:
+        data = json.load(json_data)
+        for obj in data:
+            if obj["url"] == dwarf_name:
+                dwarf = obj
+    return render_template("member.html", page_title="BIO", dwarf = dwarf)
+
+
 if __name__ == "__main__":
     app.run(host=os.environ.get("IP"),
         port=int(os.environ.get("PORT")),
